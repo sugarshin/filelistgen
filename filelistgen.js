@@ -3,36 +3,29 @@
 const Promise = require('bluebird');
 const exec = require('child-process-promise').exec;
 const diff = require('diff');
-const parseXLSX = require('excel');
 const fs = Promise.promisifyAll(require('fs'));
 
 const getFirstColValues = require('./utils/getFirstColValues');
+const parseXLSXAsync = require('./utils/parseXLSXAsync');
 
-fs.readFileAsync('t1.txt', 'utf8', (err, data) => {
-  const t1 = data;
-  parseXLSX('filelist.xlsx', (err, data) => {
-    if(err) throw err;
-    console.log(data);
-    const firstColsText = getFirstColValues(data).join('\n');
+Promise.resolve()
+  .then(() => {
+    return Promise.all([
+      fs.readFileAsync('t.txt', 'utf8'),
+      parseXLSXAsync('./filelist.xlsx')
+    ]);
+  })
+  .then(result => {
+    const ttxt = result[0];
+    const filelist = result[1];
+    const firstColsText = getFirstColValues(filelist).join('\n');
     console.log(typeof firstColsText);
-    console.log(typeof t1);
-    const di = diff.diffLines(t1, firstColsText);
+    console.log(typeof ttxt);
+    console.log(firstColsText);
+    console.log(ttxt);
+    const di = diff.diffLines(ttxt, firstColsText);
     console.log(di)
   });
-});
-
-// const XLSX = require('xlsx');
-//
-// const workbook = XLSX.readFile('filelist.xlsx');
-// // console.log(workbook.Sheets.Sheet1.D2.v)
-// fs.writeFile('workbook.json', JSON.stringify(workbook, null, 2), err => {
-//   if (err) throw err;
-//   console.log('saved!');
-//   fs.readFile('workbook.json', (err, data) => {
-//     if (err) throw err;
-//     XLSX.writeFile(JSON.parse(data), 'other.xlsx');
-//   });
-// });
 
 Promise.resolve()
   .then(() => {
